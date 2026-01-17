@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dettaglio Post - Tech Blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <div id="content" class="max-w-3xl mx-auto py-12 px-4 fade-in">
+        <div class="flex flex-col items-center justify-center mt-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="mt-4 text-gray-500 font-medium">Caricamento contenuti...</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. Recuperiamo l'ID dall'URL (es. ?id=5582)
+        const params = new URLSearchParams(window.location.search);
+        const postId = params.get('id');
+        const contentDiv = document.getElementById('content');
+
+        // Funzione per caricare i dati
+        async function fetchPost() {
+            try {
+                // Se l'ID manca nell'URL
+                if (!postId) throw new Error("ID mancante");
+
+                const response = await fetch(`http://127.0.0.1:8000/api/posts/${postId}`);
+                
+                // Se il server risponde con 404 o altri errori
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || "Post non trovato");
+                }
+
+                const post = await response.json();
+                renderPost(post);
+
+            } catch (error) {
+                renderError(error.message);
+            }
+        }
+
+        // Funzione per mostrare il post (Successo)
+        function renderPost(post) {
+            contentDiv.innerHTML = `
+                <a href="index.html" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium mb-8 transition">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Torna alla lista
+                </a>
+                
+                <img src="${post.url}" class="w-full h-80 object-cover rounded-3xl shadow-2xl mb-10" alt="${post.titolo}">
+                
+                <h1 class="text-5xl font-extrabold text-gray-900 mb-6 leading-tight">${post.titolo}</h1>
+                
+                <div class="flex items-center space-x-4 mb-10 pb-10 border-b border-gray-200">
+                    <div class="bg-blue-100 text-blue-700 rounded-full px-4 py-1 text-sm font-bold">
+                        👤 ${post.autore}
+                    </div>
+                    <div class="text-gray-400 text-sm">
+                        👁️ ${post.views} visualizzazioni • ❤️ ${post.like} likes
+                    </div>
+                </div>
+                
+                <article class="prose prose-lg text-gray-700 leading-relaxed mb-16">
+                    ${post.testo}
+                </article>
+
+                <section class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Commenti (${post.commenti.length})</h3>
+                    <div class="space-y-6">
+                        ${post.commenti.map(c => `
+                            <div class="pb-4 border-b border-gray-50 last:border-0">
+                                <p class="text-blue-600 font-bold text-sm">@${c.autore}</p>
+                                <p class="text-gray-600 mt-1">${c.testo}</p>
+                            </div>
+                        `).join('') || '<p class="text-gray-400">Nessun commento presente.</p>'}
+                    </div>
+                </section>
+            `;
+        }
+
+        // Funzione per mostrare l'errore (404 o altro)
+        function renderError(message) {
+            contentDiv.innerHTML = `
+                <div class="flex flex-col items-center justify-center mt-20 text-center fade-in">
+                    <div class="text-9xl mb-4">🕵️‍♂️</div>
+                    <h1 class="text-4xl font-black text-gray-800 mb-2">404 - Pagina non trovata</h1>
+                    <p class="text-xl text-gray-500 mb-8">
+                        Il post con ID <span class="font-mono bg-gray-200 px-2 rounded">${postId || 'nullo'}</span> 
+                        non è presente nel nostro database.
+                    </p>
+                    <p class="text-sm text-red-400 mb-8">Dettaglio tecnico: ${message}</p>
+                    <a href="index.html" class="bg-gray-900 text-white px-8 py-3 rounded-full font-bold hover:bg-gray-700 transition shadow-lg">
+                        Torna alla Home
+                    </a>
+                </div>
+            `;
+        }
+
+        // Avvio del caricamento
+        fetchPost();
+    </script>
+</body>
+</html>

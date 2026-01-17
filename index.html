@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .card-fade { animation: fadeInUp 0.4s ease-out forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <h1 class="text-4xl font-black text-center mb-6 text-gray-800 tracking-tight">Tech Insights Explorer</h1>
+    
+    <div class="max-w-6xl mx-auto">
+        <div class="relative max-w-md mx-auto mb-10">
+            <input type="text" id="searchBar" placeholder="Cerca per titolo, autore o tag..." 
+                   class="w-full px-5 py-3 rounded-full border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            <span class="absolute right-4 top-3.5 text-gray-400">🔍</span>
+        </div>
+
+        <div id="loader" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-14 w-14 border-t-4 border-blue-600 border-opacity-50 border-r-4"></div>
+            <p class="mt-4 text-gray-400 animate-pulse font-medium">Sincronizzazione dati in corso...</p>
+        </div>
+
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
+        
+        <div id="noResults" class="hidden text-center py-20 text-gray-500">
+            <p class="text-xl">Nessun post trovato per la tua ricerca 🕵️‍♂️</p>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const loader = document.getElementById('loader');
+        const searchBar = document.getElementById('searchBar');
+        const noResults = document.getElementById('noResults');
+
+        let allPosts = []; // Memoria locale per tutti i post scaricati
+
+        async function init() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/posts');
+                if (!response.ok) throw new Error("Errore");
+                
+                allPosts = await response.json();
+                
+                loader.classList.add('hidden');
+                grid.classList.remove('hidden');
+                
+                // Visualizzazione iniziale
+                displayPosts(allPosts);
+                
+            } catch (error) {
+                loader.innerHTML = `<p class="text-red-500 text-center">Server non raggiungibile.</p>`;
+            }
+        }
+
+        // Funzione per disegnare le card
+        function displayPosts(postsToDisplay) {
+            if (postsToDisplay.length === 0) {
+                grid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            } else {
+                grid.classList.remove('hidden');
+                noResults.classList.add('hidden');
+                
+                grid.innerHTML = postsToDisplay.map((post, index) => `
+                    <div onclick="window.location.href='detail.html?id=${post.id}'" 
+                         class="card-fade bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        <img src="${post.url}" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h2 class="text-xl font-bold text-gray-800 mb-2">${post.titolo}</h2>
+                            <p class="text-gray-500 text-sm line-clamp-2 mb-4">By ${post.autore}</p>
+                            <div class="flex gap-2">
+                                ${post.tags.map(t => `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded">#${t}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Evento di ricerca
+        searchBar.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            
+            const filtered = allPosts.filter(post => {
+                return post.titolo.toLowerCase().includes(term) || 
+                       post.autore.toLowerCase().includes(term) || 
+                       post.testo.toLowerCase().includes(term) ||
+                       post.commenti.some(c => c.testo.toLowerCase().includes(term)) ||
+                       post.tags.some(t => t.toLowerCase().includes(term));
+            });
+            
+            displayPosts(filtered);
+        });
+
+        init();
+    </script>
+</body>
+</html>

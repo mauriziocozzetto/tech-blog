@@ -1,0 +1,19 @@
+# Ambiente virtuale
+venv/
+.venv/
+env/
+
+# Variabili d'ambiente (DATI SENSIBILI!)
+.env
+
+# Database locali e file di testo temporanei
+*.json
+*.txt
+*.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# cartella con le prove fatte prima
+vecchi_test/
