@@ -11,6 +11,7 @@ powershell -Command "pip freeze | Out-File -Encoding UTF8 requirements.txt"
 
 echo [2/4] Preparo i file per il caricamento...
 git add .
+git pull origin main --rebase
 
 echo.
 set /p msg="Cosa hai modificato? (scrivi e premi Invio): "

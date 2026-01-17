@@ -9,8 +9,8 @@ app = FastAPI()
 # Connessione al Database (Usa la variabile che abbiamo impostato su Render)
 MONGO_DETAILS = os.getenv("MONGO_DETAILS")
 client = AsyncIOMotorClient(MONGO_DETAILS)
-database = client.tech_blog
-posts_collection = database.get_collection("posts")
+database = client.blog_database 
+posts_collection = database.get_collection("posts_collection")
 
 # --- ROTTE PER LE PAGINE HTML ---
 
