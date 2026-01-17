@@ -84,6 +84,8 @@
             const filtered = allPosts.filter(post => 
                 post.titolo.toLowerCase().includes(term) || 
                 post.autore.toLowerCase().includes(term) ||
+                post.testo.toLowerCase().includes(term) ||
+                post.commenti.some(c => c.testo.toLowerCase().includes(term)) ||
                 post.tags.some(t => t.toLowerCase().includes(term))
             );
             displayPosts(filtered);
